@@ -13,7 +13,9 @@
   (unless *listener*
     (setf *listener* (make-instance 'easy-routes-acceptor
                                     :address "127.0.0.1"
-                                    :port 8080))
+                                    :port 8080
+                                    :access-log-destination nil
+                                    :message-log-destination nil))
     (hunchentoot:start *listener*))
   (start-boxer-thread))
 
@@ -39,7 +41,6 @@
              (multiple-value-bind (item more)
                  (mailbox:read-mail *overwrite-box*)
                (when item
-                 (log:info "overwrite")
                  (with-open-file (out "C:/Users/cmoore/Desktop/speech.txt"
                                       :direction :output
                                       :if-exists :supersede)
@@ -50,7 +51,6 @@
              (multiple-value-bind (item more)
                  (mailbox:read-mail *append-box*)
                (when item
-                 (log:info "append")
                  (with-open-file (out "C:/Users/cmoore/Desktop/speech.txt"
                                       :direction :output
                                       :if-exists :append)
@@ -65,6 +65,7 @@
   "ok")
 
 (defroute add-speech ("/speech/add/overwrite" :method :post) (bundle)
+  ;;(log:info "OVERWRITING")
   (mailbox:post-mail bundle *overwrite-box*)
   "ok")
 
@@ -168,10 +169,6 @@
       (who:str
        (ps
          (defvar speech nil)
-         ;; (defun append-full (sentence)
-         ;;   (setf (@ (-> document (get-element-by-id "output")) inner-h-t-m-l) sentence))
-         ;; (defun append-partial (sentence)
-         ;;   (incf (@ (-> document (get-element-by-id "output")) inner-h-t-m-l) sentence))
          (with-document-ready
              (lambda ()
                (setf speech (new (webkit-speech-recognition)))
